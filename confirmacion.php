@@ -56,7 +56,7 @@ $query = "INSERT INTO usuarios (nombre, correo, contrasena, nacimiento, tarjeta,
         echo '<br><br><div class="alert alert-success alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>Éxito!</strong> Se registró correctamente</div>';
         mysqli_close($con);
         ?>
-        <a href="index.html" class="btn btn-primary">Regresar a inicio</a>
+        <a href="index.html" class="btn btn-primary">Back to home</a>
     </div>
 
 </body>

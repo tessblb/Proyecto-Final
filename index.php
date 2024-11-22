@@ -11,7 +11,7 @@ if (!isset($_SESSION['id_usuario'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Epsylone</title>
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -22,7 +22,7 @@ if (!isset($_SESSION['id_usuario'])) {
             background-color: #f9f9f9;
         }
         .custom {
-            background: linear-gradient(135deg, #6a0dad, #87cefa);
+            background: linear-gradient(135deg, #8B4513, #D2B48C);
             color: white;
             padding: 40px;
             border-radius: 20px;
@@ -44,13 +44,74 @@ if (!isset($_SESSION['id_usuario'])) {
             text-align: center;
         }
 
+        .image {
+            -moz-transition: opacity 0.25s ease-in-out;
+            -webkit-transition: opacity 0.25s ease-in-out;
+            -ms-transition: opacity 0.25s ease-in-out;
+            transition: opacity 0.25s ease-in-out;
+            display: inline-block;
+            border: solid 6px #ebebeb !important;
+        }
+
+        .image:hover {
+            opacity: 0.9;
+        }
+
+        .image img {
+            display: block;
+            width: 100%;
+        }
+
+        .image.fit {
+            display: block;
+            width: 100%;
+        }
+
+        .image.featured {
+            display: block;
+            width: 100%;
+            margin: 0 0 3.5em 0;
+        }
+
+        .image.left {
+            float: left;
+            margin: 0 1.5em 1.5em 0;
+            position: relative;
+            top: 0.5em;
+        }
+
+        .image.centered {
+            display: block;
+            margin: 0 0 2em 0;
+        }
+
+        .image.centered img {
+            margin: 0 auto;
+            width: auto;
+        }
+
+        .navbar {
+            background-color: #8f8787;
+        }
+        .btn-custom {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background-color: #6a3e19;
+        }
     </style>
 </head>
 <body>
     <!--Contenedor principal de BS5-->
-    <div class="container">
-        <!-- Grey with black text -->
-        <nav class="navbar navbar-expand-sm bg-secondary navbar-dark fixed-top">
+    <class="container">
+        <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -59,18 +120,31 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Inicio</a>
+                        <a class="nav-link active" href="index.php">Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="guitar.php">Guitars</a></li>
+                            <li><a class="dropdown-item" href="piano.php">Pianos</a></li>
+                            <li><a class="dropdown-item" href="drums.php">Drums</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.php">Acerca de</a>
+                        <a class="nav-link" href="about.php">About</a>
                     </li>
+
                 </ul>
                 <ul class="navbar-nav ms-auto d-flex align-items-center">
                 <li class="nav-item">
-                    <span class="navbar-text text-white me-3">Hola, <?php echo $_SESSION['nombre']; ?>!</span>
+                    <span class="navbar-text text-white me-3">Hello, <?php echo $_SESSION['nombre']; ?>!</span>
                 </li>
+                <form class="d-flex" action="buscar.php" method="GET">
+                    <input class="form-control me-2" type="text" name="nombre" placeholder="Search">
+                    <button class="btn btn-custom" type="submit">Search</button>
+                </form>
                 <li class="nav-item">
-                    <a class="nav-link" href="logout.php">Cerrar Sesión</a>
+                    <a class="nav-link" href="logout.php">Close Session</a>
                 </li>
                 </ul>
             </div>
@@ -82,17 +156,48 @@ if (!isset($_SESSION['id_usuario'])) {
         <br><br>
         <h2>Espylone: Where every note begins.</h2>
         <h3>Your destination for quality musical instruments and inspiration.</h3><br><br>
-        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Provident a ut blanditiis odit voluptatibus magnam incidunt ea rerum! Id sequi quisquam enim totam labore. Quae ratione suscipit perspiciatis aperiam porro.</p>
-        <p>Commodi deserunt itaque quasi ratione ullam odit laboriosam ab, corporis dicta ad ipsum non saepe optio sapiente deleniti officia alias mollitia repellendus eius at obcaecati ex et tempore. Sit, quibusdam!</p>
-        <p>Maiores animi, sed alias, vitae iusto quia id autem expedita officiis nihil magnam deserunt deleniti provident dolores. Non vero itaque nisi asperiores, quos officiis laborum magnam blanditiis libero, eum doloremque!</p>
-        <p>Saepe quia earum officia neque, vero harum minima blanditiis voluptas ex, eveniet cumque? Consequuntur accusamus quis deserunt optio reprehenderit, ex fuga quae nam provident hic consectetur laboriosam officia dolore nobis?</p>
-        <p>Omnis repellat maiores vitae ex officiis nesciunt? Suscipit sunt eum ea natus quos reiciendis sint a at, nulla praesentium nobis vitae excepturi sit inventore aliquid autem atque dolorum ut. Consequatur!</p>
-        <p>Dignissimos autem odit delectus animi et, placeat consequuntur numquam facere dicta minima quidem officia enim sapiente alias, consequatur aperiam a accusamus quos voluptates minus quod. Hic corrupti tenetur praesentium? Facilis.</p>
-        <p>Dicta, aperiam nesciunt repellat totam recusandae molestias debitis aliquam omnis, iusto nemo quidem aut placeat pariatur asperiores labore, aliquid a eaque eum sit accusantium temporibus quod architecto quae id. Voluptatibus?</p>
-        <p>Vitae eius porro, velit natus quasi ipsum magni reprehenderit delectus consequatur incidunt debitis rerum minus? Tenetur nam impedit mollitia, quibusdam sit libero ea, excepturi illo adipisci reprehenderit nostrum molestiae aperiam?</p>
-        <p>Quasi saepe officiis aliquam consequatur autem, porro, illum incidunt ut pariatur repellat architecto magni libero est facere placeat accusantium molestiae laborum eum ipsam deleniti. Praesentium a soluta ipsa fugiat nostrum?</p>
-        <p>Temporibus saepe nam fugiat odio odit voluptatem laudantium perspiciatis adipisci facilis, consequatur illo hic aperiam corporis minus quibusdam. Et laborum fuga inventore ullam minima dignissimos sequi molestiae necessitatibus vitae laboriosam.</p>
+        <!-- Features -->   
+        <section id="features">
+            <div class="container">
+                <header>
+                    <h2>Take a look at our <strong>featured products</strong> !</h2>
+                </header>
+                <div class="row aln-center">
+                    <div class="col-4 col-6-medium col-12-small">
+                        <!-- Feature -->
+                        <section>
+                            <a href="guitar.php" class="image featured .img-fluid"><img src="pic01.jpg" alt=""></a>
+                            <header>
+                                <h3>Guitar/Bass</h3>
+                            </header>
+                            <p><strong>Guitar & Bass:</strong> iconic sound, timeless design, and unmatched quality for every musician.</p>
+                        </section>
+                    </div>
 
+                    <div class="col-4 col-6-medium col-12-small">
+                        <!-- Feature -->
+                        <section>
+                            <a href="piano.php" class="image featured .img-fluid"><img src="pic02.jpg" alt=""></a>
+                            <header>
+                                <h3>Piano</h3>
+                            </header>
+                            <p><strong>Yamaha Pianos:</strong> elegant craftsmanship, exceptional tone, and performance for all musicians.</p>
+                        </section>
+                    </div>
+
+                    <div class="col-4 col-6-medium col-12-small">
+                        <!-- Feature -->
+                            <section>
+                                <a href="drums.php" class="image featured"><img src="pic03.jpg" alt="" /></a>
+                                <header>
+                                    <h3>Drums</h3>
+                                </header>
+                                <p><strong>Drums</strong> versatile sound, solid build, and unbeatable value for every player.</p>
+                            </section>
+                    </div>
+                </div>
+            </div>
+        </section><br><br><br>
 
     </div>
     
