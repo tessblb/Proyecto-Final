@@ -11,48 +11,48 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-if (!$con) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
 
-$queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
-$resultadmin = mysqli_query($con, $queryadmin);
+    $queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
+    $resultadmin = mysqli_query($con, $queryadmin);
 
-if (!$resultadmin) {
-    die("Error: " . mysqli_error($con));
-}
+    if (!$resultadmin) {
+        die("Error: " . mysqli_error($con));
+    }
 
-$admin = mysqli_fetch_assoc($resultadmin);
+    $admin = mysqli_fetch_assoc($resultadmin);
 
-var_dump($admin);
+    var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
 
-$motCle = isset($_GET['nombre']) ? trim($_GET['nombre']) : "";
+$keyword = isset($_GET['nombre']) ? trim($_GET['nombre']) : "";
 
-if (empty($motCle)) {
-    die("Le paramètre 'nombre' est requis pour effectuer une recherche.");
+if (empty($keyword)) {
+    die("The 'nombre' parameter is required to perform a search.");
 }
 
 $sql = "SELECT id_producto, nombre, descripcion, precio, fotos FROM productos WHERE nombre LIKE ? OR descripcion LIKE ?";
 $stmt = mysqli_prepare($con, $sql);
 
 if (!$stmt) {
-    die("Erreur lors de la préparation de la requête : " . mysqli_error($con));
+    die("Error while preparing the query: " . mysqli_error($con));
 }
 
-$motCleLike = "%" . $motCle . "%";
-mysqli_stmt_bind_param($stmt, "ss", $motCleLike, $motCleLike);
+$keywordLike = "%" . $keyword . "%";
+mysqli_stmt_bind_param($stmt, "ss", $keywordLike, $keywordLike);
 
 if (!mysqli_stmt_execute($stmt)) {
-    die("Erreur lors de l'exécution de la requête : " . mysqli_stmt_error($stmt));
+    die("Error while executing the query: " . mysqli_stmt_error($stmt));
 }
 
 $result = mysqli_stmt_get_result($stmt);
-$resultats = [];
+$results = [];
 while ($row = mysqli_fetch_assoc($result)) {
-    $resultats[] = $row;
+    $results[] = $row;
 }
 mysqli_stmt_close($stmt);
 ?>
