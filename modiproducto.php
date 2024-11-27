@@ -180,39 +180,6 @@ if (isset($_GET['delete_comment'])) {
     <?php else: ?>
         <p>Product not found.</p>
     <?php endif; ?>
-
-    <hr>
-
-    <div class="mt-5">
-        <h3>Comments</h3>
-        <?php
-        $stmt = $con->prepare("
-            SELECT c.id, c.comment, c.stars, c.date_creation, u.nombre AS usuario_nombre 
-            FROM comentarios c
-            JOIN usuarios u ON c.id_usuario = u.id_usuario
-            WHERE c.id_producto = ? 
-            ORDER BY c.date_creation DESC
-        ");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            while ($comment = $result->fetch_assoc()) {
-                echo "<div class='review-section mb-4'>";
-                echo "<h5>" . htmlspecialchars($comment['usuario_nombre']) . "</h5>";
-                echo "<p>" . htmlspecialchars($comment['comment']) . "</p>";
-                echo "<p>Stars: " . htmlspecialchars($comment['stars']) . "</p>";
-                echo "<small>Posted on: " . htmlspecialchars($comment['date_creation']) . "</small><br>";
-                echo "<a href='modiproducto.php?id=$id&delete_comment=" . $comment['id'] . "' class='btn btn-danger btn-sm mt-2'>Delete</a>";
-                echo "</div><hr>";
-            }
-        } else {
-            echo "<p>Still no comments.</p>";
-        }
-        $stmt->close();
-        ?>
-    </div>
     <hr>
     <a href="inventario.php" class="btn btn-custom">Try from inventory</a><br><br>
 </div>
