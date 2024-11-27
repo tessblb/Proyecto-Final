@@ -55,19 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $update_stmt->close();
     }
 }
-
-// Handle comment deletion
-if (isset($_GET['delete_comment'])) {
-    $comment_id = intval($_GET['delete_comment']);
-    $stmtDelete = $con->prepare("DELETE FROM comentarios WHERE id = ?");
-    $stmtDelete->bind_param("i", $comment_id);
-    if ($stmtDelete->execute()) {
-        echo "<div class='alert alert-success'>Comment deleted successfully.</div>";
-    } else {
-        echo "<div class='alert alert-danger'>Error deleting comment: " . $stmtDelete->error . "</div>";
-    }
-    $stmtDelete->close();
-}
 ?>
 
 <!DOCTYPE html>
