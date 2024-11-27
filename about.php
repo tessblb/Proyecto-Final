@@ -51,7 +51,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -66,7 +66,7 @@ var_dump($admin);
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.php">About</a>
+                        <a class="nav-link active" href="about.php">About</a>
                     </li>
                     <?php if ($admin['administrator'] == 1): ?>
                     <li class="nav-item dropdown">
