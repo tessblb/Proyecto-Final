@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,13 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+$query = "SELECT * FROM usuarios;";
+if (mysqli_connect_errno()) {
+    echo "<div class=\"alert alert-danger\"><strong>Error!</strong>" . mysqli_connect_error() . "</div>";
+}
+$result = mysqli_query($con, $query);
+mysqli_close($con);
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +42,12 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,7 +58,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -70,7 +77,7 @@ var_dump($admin);
                     </li>
                     <?php if ($admin['administrator'] == 1): ?>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Administrator</a>
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">Administrator</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="inventario.php">Inventory</a></li>
                             <li><a class="dropdown-item" href="newproducto.php">Add a product</a></li>
@@ -109,34 +116,41 @@ var_dump($admin);
             </div>
         </nav>
         <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
+        <div class="custom">
+            <h1>Registered users</h1>
         </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
+        <br><br>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Birthday</th>
+                    <th>Bankcard</th>
+                    <th>Address</th>
+                    <th>Administrator</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                while($row = mysqli_fetch_array($result)) {
+                    echo "<tr>";
+                    echo "<td>" . $row['nombre'] . "</td>";
+                    echo "<td>" . $row['correo'] . "</td>";
+                    echo "<td>" . $row['contrasena'] . "</td>";
+                    echo "<td>" . $row['nacimiento'] . "</td>";
+                    echo "<td>" . $row['tarjeta'] . "</td>";
+                    echo "<td>" . $row['direccion'] . "</td>";
+                    echo "<td>" . $row['administrator'] . "</td>";
+                    echo "</tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+        <br>
 
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
-        </div>
+    </div>
     
 </body>
 </html>

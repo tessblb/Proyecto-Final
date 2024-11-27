@@ -29,7 +29,27 @@ var_dump($admin);
     $admin['administrator'] = 0;
 }
 
-$query = "SELECT id_producto, fotos, nombre, precio FROM productos WHERE categoria = 1";
+if (isset($_SESSION['id_usuario'])) {
+    $admin_id = $_SESSION['id_usuario'];
+    $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
+
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    $queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
+    $resultadmin = mysqli_query($con, $queryadmin);
+
+    if (!$resultadmin) {
+        die("Error: " . mysqli_error($con));
+    }
+
+    $admin = mysqli_fetch_assoc($resultadmin);
+} else {
+    $admin['administrator'] = 0;
+}
+
+$query = "SELECT id_producto, fotos, nombre, precio FROM productos ORDER BY nombre ASC";
 $result = mysqli_query($con, $query);
 
 if (!$result) {
@@ -44,7 +64,7 @@ mysqli_close($con);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guitars</title>
+    <title>All Products</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <style>
@@ -55,6 +75,7 @@ mysqli_close($con);
             display: flex;
             align-items: center;
         }
+
         .container {
             background-color: #f9f9f9;
         }
@@ -74,27 +95,8 @@ mysqli_close($con);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
         }
 
-        h2 {
-            text-align: center;
-        }
-        h3 {
-            text-align: center;
-        }
         a.text-decoration-none {
             color: #654321;
-        }
-                .btn-custom {
-            background-color: #8B4513;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-custom:hover {
-            background-color: #6a3e19;
         }
     </style>
 </head>
@@ -167,23 +169,26 @@ mysqli_close($con);
                 </div>
             </nav>
 
-        <br><br><br>
-        <div class = "custom">
-            <h1>EPSYLONE'S GUITARS</h1>
-        </div>
-        <br><br>
-
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                <div class="col-md-3 text-center mb-4">
-                    <a href="detalles.php?id=<?php echo $row['id_producto']; ?>" class="text-decoration-none">
-                        <img src="data:image/jpeg;base64,<?php echo base64_encode($row['fotos']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="img-fluid" style="max-height: 200px;">
-                        <h5><?php echo htmlspecialchars($row['nombre']); ?></h5>
-                        <p>Price: €<?php echo number_format($row['precio'], 2); ?></p>
-                    </a>
-                </div>
-            <?php endwhile; ?>
-        </div>
+    <br><br><br>
+    <div class="custom">
+        <h1>EPSYLONE'S PRODUCTS</h1>
     </div>
+    <br><br>
+
+    <div class="row">
+        <?php while ($row = mysqli_fetch_assoc($result)): ?>
+            <div class="col-md-3 text-center mb-4">
+                <a href="detalles.php?id=<?php echo $row['id_producto']; ?>" class="text-decoration-none">
+                    <img src="data:image/jpeg;base64,<?php echo base64_encode($row['fotos']); ?>" 
+                         alt="<?php echo htmlspecialchars($row['nombre']); ?>" 
+                         class="img-fluid" 
+                         style="max-height: 200px;">
+                    <h5><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                    <p>Price: €<?php echo number_format($row['precio'], 2); ?></p>
+                </a>
+            </div>
+        <?php endwhile; ?>
+    </div>
+</div>
 </body>
 </html>

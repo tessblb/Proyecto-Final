@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,15 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+$query = "SELECT id_producto, fotos, nombre, precio FROM productos WHERE categoria = 5";
+$result = mysqli_query($con, $query);
+
+if (!$result) {
+    die("Erreur lors de la récupération des produits : " . mysqli_error($con));
+}
+
+mysqli_close($con);
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +44,62 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Winds</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        .navbar {
+            background-color: #8f8787;
+            justify-content: space-between;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #f9f9f9;
+        }
+        .custom {
+            background: linear-gradient(135deg, #8B4513, #D2B48C);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; 
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .custom:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            text-align: center;
+        }
+        h3 {
+            text-align: center;
+        }
+        a.text-decoration-none {
+            color: #654321;
+        }
+                .btn-custom {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background-color: #6a3e19;
+        }
+    </style>
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,10 +110,10 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="guitar.php">Guitars</a></li>
                             <li><a class="dropdown-item" href="piano.php">Pianos</a></li>
@@ -108,35 +167,24 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
-        </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
 
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
+        <br><br><br>
+        <div class = "custom">
+            <h1>EPSYLONE'S WINDS</h1>
         </div>
-    
+        <br><br>
+
+        <div class="row">
+            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                <div class="col-md-3 text-center mb-4">
+                    <a href="detalles.php?id=<?php echo $row['id_producto']; ?>" class="text-decoration-none">
+                        <img src="data:image/jpeg;base64,<?php echo base64_encode($row['fotos']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="img-fluid" style="max-height: 200px;">
+                        <h5><?php echo htmlspecialchars($row['nombre']); ?></h5>
+                        <p>Price: €<?php echo number_format($row['precio'], 2); ?></p>
+                    </a>
+                </div>
+            <?php endwhile; ?>
+        </div>
+    </div>
 </body>
 </html>

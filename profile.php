@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,48 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+$admin_id = $_SESSION['id_usuario'];
+
+$con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
+if (!$con) {
+    die("Erreur de connexion : " . mysqli_connect_error());
+}
+
+$user_id = $_SESSION['id_usuario'];
+$user = null;
+
+$stmt = $con->prepare("SELECT * FROM usuarios WHERE id_usuario = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $nombre = $_POST['nombre'];
+    $correo = $_POST['correo'];
+    $contrasena = $_POST['contrasena'];
+    $nacimiento = $_POST['nacimiento'];
+    $tarjeta = $_POST['tarjeta'];
+    $direccion = $_POST['direccion'];
+
+    if (empty($nombre) || empty($correo) || empty($contrasena) || empty($nacimiento) || empty($tarjeta) || empty($direccion)) {
+        echo "<div class='alert alert-danger'>Please fill in all fields correctly.</div>";
+    } else {
+        $update_stmt = $con->prepare("UPDATE usuarios SET nombre = ?, correo = ?, contrasena = ?, nacimiento = ?, tarjeta = ?, direccion = ? WHERE id_usuario = ?");
+        $update_stmt->bind_param("ssssssi", $nombre, $correo, $contrasena, $nacimiento, $tarjeta, $direccion, $user_id);
+
+        if ($update_stmt->execute()) {
+            echo "<br><br><br><div class='alert alert-success container'>Informations modified successfully !</div>";
+        } else {
+            echo "<div class='alert alert-danger'>Error : " . $update_stmt->error . "</div>";
+        }
+        $update_stmt->close();
+    }
+}
+
+mysqli_close($con);
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +77,12 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Profile</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,7 +93,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -108,35 +150,54 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
+        <br>
+    <div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Modification of your infos</h2>
+            <?php if ($user): ?>
+                <form method="POST" action="profile.php">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo htmlspecialchars($user['nombre']); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="correo" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="correo" name="correo" value="<?php echo htmlspecialchars($user['correo']); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contrasena" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="contrasena" name="contrasena" value="<?php echo htmlspecialchars($user['contrasena']); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nacimiento" class="form-label">Birthday</label>
+                        <input type="date" class="form-control" id="nacimiento" name="nacimiento" value="<?php echo htmlspecialchars($user['nacimiento']); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tarjeta" class="form-label">Bankcard</label>
+                        <input type="text" class="form-control" id="tarjeta" name="tarjeta" value="<?php echo htmlspecialchars($user['tarjeta']); ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label">Address</label>
+                        <textarea class="form-control" id="direccion" name="direccion" required><?php echo htmlspecialchars($user['direccion']); ?></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-custom">Save changes</button>
+                </form>
+            <?php else: ?>
+                <div class="alert alert-danger">User not found.</div>
+            <?php endif; ?>
         </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
 
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
+        <div class="col-md-4 d-flex flex-column align-items-center">
+            <img src="music.png" alt="Epsylone logo" class="rounded-pill" style="width: 300px;">
+            <a href="historial.php" class="btn btn-custom mb-3 w-100">Go to purchase history</a>
+            <a href="favorite.php" class="btn btn-custom mb-3 w-100">Go to favorites</a>
+            <a href="carrito.php" class="btn btn-custom mb-3 w-100">Go to cart</a>
         </div>
-    
+    </div>
+</div>
+
+
+
 </body>
 </html>

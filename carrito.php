@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,68 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+if (isset($_SESSION['id_usuario'])) {
+    $admin_id = $_SESSION['id_usuario'];
+    $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
+
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    $queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
+    $resultadmin = mysqli_query($con, $queryadmin);
+
+    if (!$resultadmin) {
+        die("Error: " . mysqli_error($con));
+    }
+
+    $admin = mysqli_fetch_assoc($resultadmin);
+} else {
+    $admin['administrator'] = 0;
+}
+
+if (!isset($_SESSION['carrito'])) {
+    $_SESSION['carrito'] = [];
+}
+
+if (isset($_GET['add'])) {
+    $id_producto = intval($_GET['add']);
+    if ($id_producto > 0) {
+        $query = "SELECT * FROM productos WHERE id_producto = ?";
+        $stmt = $con->prepare($query);
+        $stmt->bind_param("i", $id_producto);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $produit = $result->fetch_assoc();
+
+            if (isset($_SESSION['carrito'][$id_producto])) {
+                $_SESSION['carrito'][$id_producto]['quantity']++;
+            } else {
+                $_SESSION['carrito'][$id_producto] = [
+                    'nom' => $produit['nombre'],
+                    'prix' => $produit['precio'],
+                    'quantity' => 1
+                ];
+            }
+        }
+    }
+
+    header("Location: carrito.php");
+    exit();
+}
+
+
+if (isset($_GET['remove'])) {
+    $id_producto = intval($_GET['remove']);
+    if (isset($_SESSION['carrito'][$id_producto])) {
+        unset($_SESSION['carrito'][$id_producto]);
+    }
+}
+
+$_SESSION['from_cart'] = true;
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +97,17 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Epsylone</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+        a.text-decoration-none {
+            color: #654321;
+        }
+    </style>
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,7 +118,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -108,35 +175,46 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
-        </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
-
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
-        </div>
-    
+    <div class="container mt-5">
+        <br><br><h1>Your shopping basket</h1>
+        <?php if (empty($_SESSION['carrito'])): ?>
+            <p>Your shopping basket is empty.</p>
+        <?php else: ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $total_general = 0;
+                    foreach ($_SESSION['carrito'] as $id => $item): 
+                        $total = $item['prix'] * $item['quantity'];
+                        $total_general += $total;
+                    ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($item['nom']); ?></td>
+                        <td>€<?php echo number_format($item['prix'], 2); ?></td>
+                        <td><?php echo $item['quantity']; ?></td>
+                        <td>€<?php echo number_format($total, 2); ?></td>
+                        <td>
+                            <a href="carrito.php?remove=<?php echo $id; ?>" class="btn btn-danger btn-sm">Delete</a>
+                            <a href="favorite.php?add=<?php echo $id; ?>" class="btn btn-warning btn-sm">Move to favorite</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <h3>Total : €<?php echo number_format($total_general, 2); ?></h3>
+            <a href="checkout1.php" class="btn btn-custom">Go to checkout</a>
+        <?php endif; ?>
+        <br><br>
+        <a href="index.php" class="btn btn-custom">Continue shopping</a>
+    </div><br><br>
 </body>
 </html>

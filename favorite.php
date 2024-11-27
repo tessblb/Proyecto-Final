@@ -29,11 +29,46 @@ var_dump($admin);
     $admin['administrator'] = 0;
 }
 
-$query = "SELECT id_producto, fotos, nombre, precio FROM productos WHERE categoria = 1";
-$result = mysqli_query($con, $query);
+$user_id = $_SESSION['id_usuario'];
 
-if (!$result) {
-    die("Erreur lors de la récupération des produits : " . mysqli_error($con));
+$con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
+if (!$con) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+if (isset($_GET['add'])) {
+    $id_producto = intval($_GET['add']);
+
+    if ($id_producto > 0) {
+        $query_check_fav = "SELECT * FROM favoritos WHERE id_usuario = ? AND id_producto = ?";
+        $stmt_check = $con->prepare($query_check_fav);
+        $stmt_check->bind_param("ii", $user_id, $id_producto);
+        $stmt_check->execute();
+        $result_check = $stmt_check->get_result();
+
+        if ($result_check->num_rows === 0) {
+            $query_add_fav = "INSERT INTO favoritos (id_usuario, id_producto) VALUES (?, ?)";
+            $stmt_add = $con->prepare($query_add_fav);
+            $stmt_add->bind_param("ii", $user_id, $id_producto);
+            $stmt_add->execute();
+            $message = "Product added to favorites !";
+        } else {
+            $message = "This product was already in your favorites";
+        }
+    }
+}
+$query = "SELECT f.id_producto, p.nombre, p.precio 
+          FROM favoritos f
+          JOIN productos p ON f.id_producto = p.id_producto
+          WHERE f.id_usuario = ?";
+$stmt = $con->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$favoritos = [];
+while ($row = $result->fetch_assoc()) {
+    $favoritos[] = $row;
 }
 
 mysqli_close($con);
@@ -44,59 +79,10 @@ mysqli_close($con);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guitars</title>
+    <title>My Favorites</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        .navbar {
-            background-color: #8f8787;
-            justify-content: space-between;
-            height: 60px;
-            display: flex;
-            align-items: center;
-        }
-        .container {
-            background-color: #f9f9f9;
-        }
-        .custom {
-            background: linear-gradient(135deg, #8B4513, #D2B48C);
-            color: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; 
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        }
-
-        .custom:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        h2 {
-            text-align: center;
-        }
-        h3 {
-            text-align: center;
-        }
-        a.text-decoration-none {
-            color: #654321;
-        }
-                .btn-custom {
-            background-color: #8B4513;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-size: 16px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-custom:hover {
-            background-color: #6a3e19;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -112,7 +98,7 @@ mysqli_close($con);
                             <a class="nav-link" href="index.php">Home</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="guitar.php">Guitars</a></li>
                                 <li><a class="dropdown-item" href="piano.php">Pianos</a></li>
@@ -166,24 +152,44 @@ mysqli_close($con);
                     </ul>
                 </div>
             </nav>
+    <div class="container mt-5">
+        <h1>My Favorites</h1>
+            <?php if (isset($message)): ?>
+            <div class="alert alert-info">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (empty($favoritos)): ?>
+            <p>You have no favorite items.</p>
+        <?php else: ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($favoritos as $item): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($item['nombre']); ?></td>
+                        <td>€<?php echo number_format($item['precio'], 2); ?></td>
+                        <td>
+                            <a href="detalles.php?id=<?php echo $item['id_producto']; ?>" class="btn btn-info btn-sm">View</a>
+                            <a href="deletefav.php?id=<?php echo $item['id_producto']; ?>" class="btn btn-danger btn-sm">Remove</a>
+                            <a href="carrito.php?add=<?php echo $item['id_producto']; ?>" class="btn">
+                                <img src="carrit.png" alt="Carrito" style="width: 40px; height: auto;">
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
 
-        <br><br><br>
-        <div class = "custom">
-            <h1>EPSYLONE'S GUITARS</h1>
-        </div>
-        <br><br>
-
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                <div class="col-md-3 text-center mb-4">
-                    <a href="detalles.php?id=<?php echo $row['id_producto']; ?>" class="text-decoration-none">
-                        <img src="data:image/jpeg;base64,<?php echo base64_encode($row['fotos']); ?>" alt="<?php echo htmlspecialchars($row['nombre']); ?>" class="img-fluid" style="max-height: 200px;">
-                        <h5><?php echo htmlspecialchars($row['nombre']); ?></h5>
-                        <p>Price: €<?php echo number_format($row['precio'], 2); ?></p>
-                    </a>
-                </div>
-            <?php endwhile; ?>
-        </div>
+        <a href="index.php" class="btn btn-custom">Back to Home</a><br><br>
     </div>
 </body>
 </html>

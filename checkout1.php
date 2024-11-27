@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,16 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+if (empty($_SESSION['carrito'])) {
+    header("Location: carrito.php");
+    exit();
+}
+
+$total_general = 0;
+foreach ($_SESSION['carrito'] as $item) {
+    $total_general += floatval($item['prix']) * intval($item['quantity']);
+}
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +45,12 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Checkout - Step 1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,7 +61,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -108,35 +118,56 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
-        </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
+<br>
+        <div class="container mt-5">
+            <h1>Delivery & Payment Information</h1>
+            <form action="checkout.php" method="POST">
+                <div class="mb-3">
+                    <label for="address" class="form-label">Delivery Address</label>
+                    <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select class="form-select" id="payment_method" name="payment_method" required>
+                        <option value="" disabled selected>Choose</option>
+                        <option value="credit_card">Credit Card</option>
+                    </select>
+                </div>
 
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
+                <div id="credit_card_info" style="display:none;">
+                    <div class="mb-3">
+                        <label for="card_number" class="form-label">Card Number</label>
+                        <input type="text" class="form-control" id="card_number" name="card_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">Expiry Date (MM/YY)</label>
+                        <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cvv" class="form-label">CVV</label>
+                        <input type="text" class="form-control" id="cvv" name="cvv" required>
+                    </div>
+                </div>
+
+                <h3>Total: €<?php echo number_format($total_general, 2); ?></h3>
+                <button type="submit" class="btn btn-custom">Proceed to Payment</button>
+            </form>
+
+            <a href="carrito.php" class="btn btn-secondary mt-3">Back to Cart</a><br><br>
         </div>
-    
+    </div>
+
+    <script>
+        document.getElementById('payment_method').addEventListener('change', function () {
+            var paymentMethod = this.value;
+            var creditCardInfo = document.getElementById('credit_card_info');
+
+            creditCardInfo.style.display = 'none';
+
+            if (paymentMethod === 'credit_card') {
+                creditCardInfo.style.display = 'block'; 
+            }
+        });
+    </script>
 </body>
 </html>

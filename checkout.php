@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,60 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+if (empty($_SESSION['carrito'])) {
+    header("Location: carrito.php");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $address = trim($_POST['address']);
+    $payment_method = trim($_POST['payment_method']);
+
+    if (empty($address) || empty($payment_method)) {
+        die("Error: All fields are required.");
+    }
+
+    $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
+
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    $id_usuario = $_SESSION['id_usuario'];
+    $total_general = 0;
+
+    $query_historial = "INSERT INTO historial (id_usuario, id_producto, address, payment_method) VALUES (?, ?, ?, ?)";
+    $query_update_stock = "UPDATE productos SET cantidad = cantidad - 1 WHERE id_producto = ? AND cantidad > 0";
+
+    $stmt_historial = $con->prepare($query_historial);
+    $stmt_stock = $con->prepare($query_update_stock);
+
+    foreach ($_SESSION['carrito'] as $id_producto => $item) {
+        if (!isset($item['prix'], $item['quantity'])) {
+            continue;
+        }
+
+        $total_general += floatval($item['prix']) * intval($item['quantity']);
+
+        for ($i = 0; $i < $item['quantity']; $i++) {
+            $stmt_historial->bind_param("iiss", $id_usuario, $id_producto, $address, $payment_method);
+            $stmt_historial->execute();
+
+            $stmt_stock->bind_param("i", $id_producto);
+            $stmt_stock->execute();
+        }
+    }
+
+    $_SESSION['carrito'] = [];
+
+    $stmt_historial->close();
+    $stmt_stock->close();
+    mysqli_close($con);
+} else {
+    header("Location: checkout_step1.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -36,12 +89,13 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Checkout 2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<div class="container">
+<body>
+    <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
                 <ul class="navbar-nav">
@@ -51,7 +105,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -108,35 +162,11 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
-        </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
-
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
-        </div>
-    
+    <div class="container mt-5">
+        <br><br><h1>Checkout</h1>
+        <p>Thank you for your purchase!</p>
+        <p>Total paid: €<?php echo number_format($total_general, 2); ?></p>
+        <a href="index.php" class="btn btn-custom">Continue shopping</a>
+    </div><br><br>
 </body>
 </html>

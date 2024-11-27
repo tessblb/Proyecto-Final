@@ -11,24 +11,47 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
 
-if (!$con) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+    $queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
+    $resultadmin = mysqli_query($con, $queryadmin);
 
-$queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
-$resultadmin = mysqli_query($con, $queryadmin);
+    if (!$resultadmin) {
+        die("Error: " . mysqli_error($con));
+    }
 
-if (!$resultadmin) {
-    die("Error: " . mysqli_error($con));
-}
+    $admin = mysqli_fetch_assoc($resultadmin);
 
-$admin = mysqli_fetch_assoc($resultadmin);
-
-var_dump($admin);
+    var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+if (!isset($_SESSION['id_usuario'])) {
+    die("Erreur : aucun utilisateur connecté.");
+}
+
+$id_usuario = $_SESSION['id_usuario'];
+
+$query = "SELECT h.id_compra, p.nombre AS producto, p.precio, h.address, h.payment_method
+          FROM historial h
+          JOIN productos p ON h.id_producto = p.id_producto
+          WHERE h.id_usuario = ?
+          ORDER BY h.id_compra DESC";
+
+if (!$stmt = $con->prepare($query)) {
+    die("Erreur de préparation de la requête : " . $con->error);
+}
+
+$stmt->bind_param("i", $id_usuario);
+
+if (!$stmt->execute()) {
+    die("Erreur d'exécution de la requête : " . $stmt->error);
+}
+
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +59,12 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <title>Purchases History</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,7 +75,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -108,35 +132,30 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
-        </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
-
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
-        </div>
-    
+    <div class="container mt-5">
+        <br><br><h1>Purchases History</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Purchase ID</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Address</th>
+                    <th>Payment Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($row = $result->fetch_assoc()): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($row['id_compra']) ?></td>
+                        <td><?= htmlspecialchars($row['producto']) ?></td>
+                        <td>€<?= number_format($row['precio'], 2) ?></td>
+                        <td><?= htmlspecialchars($row['address']) ?></td>
+                        <td><?= htmlspecialchars($row['payment_method']) ?></td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table><br><br>
+    </div>
 </body>
 </html>

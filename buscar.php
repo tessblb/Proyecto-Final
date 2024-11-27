@@ -11,7 +11,6 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -29,6 +28,33 @@ var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
+
+$motCle = isset($_GET['nombre']) ? trim($_GET['nombre']) : "";
+
+if (empty($motCle)) {
+    die("Le paramètre 'nombre' est requis pour effectuer une recherche.");
+}
+
+$sql = "SELECT id_producto, nombre, descripcion, precio, fotos FROM productos WHERE nombre LIKE ? OR descripcion LIKE ?";
+$stmt = mysqli_prepare($con, $sql);
+
+if (!$stmt) {
+    die("Erreur lors de la préparation de la requête : " . mysqli_error($con));
+}
+
+$motCleLike = "%" . $motCle . "%";
+mysqli_stmt_bind_param($stmt, "ss", $motCleLike, $motCleLike);
+
+if (!mysqli_stmt_execute($stmt)) {
+    die("Erreur lors de l'exécution de la requête : " . mysqli_stmt_error($stmt));
+}
+
+$result = mysqli_stmt_get_result($stmt);
+$resultats = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $resultats[] = $row;
+}
+mysqli_stmt_close($stmt);
 ?>
 
 <!DOCTYPE html>
@@ -36,11 +62,12 @@ var_dump($admin);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <title>Résultats de la recherche</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+<body>
 <div class="container">
         <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
             <div class="container-fluid">
@@ -51,7 +78,7 @@ var_dump($admin);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Shop</a>
@@ -108,35 +135,44 @@ var_dump($admin);
                 </ul>
             </div>
         </nav>
-        <br><br><br>
-        <h2 class="custom">ESLYONE: Where every note begins.</h2>
-        <div class="photo">
-            <img src="foto.png">
-        </div>
-        <div class="container">
-        <p id="present"><i>Hello! I'm Tess Buchet Le Bihan, an engineering student at ESME Sudria University (France)
-            and currently on an exchange program at Anáhuac Mexico Norte.</i></p>
-        <p id="present"><i>I'm also passionate about music, and you can find a link to my YouTube channel below.</i></p>
-            <br><br>
-            <h2 id="enca2">Information About Me</h2>
-            <ul>
-                <li><b>Name:</b> Tess Buchet Le Bihan</li>
-                <li><b>Email:</b> <a href="mailto:tess.buchetle@anahuac.mx" class="text-decoration-none">tess.buchetle@anahuac.mx</a></li>
-                <li><b>Phone number:</b> <a href="tel:+525611478231"></a>+52 56 1147 8231</li>
-                <li><b>Address:</b> París (Francia), Ciudad de México (México)</li>
-                <li><b>Studies:</b> <a href="https://www.esme.fr/en/" target="_blank" class="text-decoration-none">ESME Sudria, </a><a href="https://www.anahuac.mx" target="_blank" class="text-decoration-none">Anáhuac Mexico</a></li>
-            </ul>
-            <br><br>
-            <h2 id="enca2">Social Networks</h2>
-            <ul>
-                <li><a href="https://linkedin.com/in/tess-buchet-le-bihan-6695b2222" target="_blank" class="text-decoration-none">LinkedIn</a></li>
-                <li><a href="https://www.youtube.com/@tessblb" target="_blank" class="text-decoration-none">Youtube</a></li>
-            </ul>
-
-            <br><br>
-            <button class="btn btn-custom" type="submit">Continue Shopping</button>
-            <br><br>
-        </div>
-    
+    <br><br>
+    <div class="container mt-5">
+        <h1 class="mb-4">Search Results</h1>
+        <?php if (count($resultats) > 0): ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($resultats as $produit): ?>
+                        <tr>
+                            <td>
+                                <?php if (!empty($produit['fotos'])): ?>
+                                    <img src="data:image/jpeg;base64,<?php echo base64_encode($produit['fotos']); ?>" alt="<?php echo htmlspecialchars($produit['nombre']); ?>" class="img-fluid">
+                                <?php else: ?>
+                                    <span>No Image</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="detalles.php?id=<?php echo $produit['id_producto']; ?>" class="text-decoration-none">
+                                    <?php echo htmlspecialchars($produit['nombre']); ?>
+                                </a>
+                            </td>
+                            <td><?php echo htmlspecialchars($produit['descripcion']); ?></td>
+                            <td><?php echo htmlspecialchars($produit['precio']); ?> €</td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No products found for the keyword: <strong><?php echo htmlspecialchars($motCle); ?></strong>.</p>
+        <?php endif; ?>
+    </div>
+</div>
 </body>
 </html>
