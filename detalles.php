@@ -176,11 +176,6 @@ mysqli_close($con);
                 <a href="favorite.php?add=<?php echo $product['id_producto']; ?>">
                     <img src="favorite.png" alt="Favorites" style="width: 30px;">
                 </a>
-                    <h5>Leave a Review</h5>
-                    <form action="add_review.php" method="POST">
-                        <textarea name="review" rows="4" class="form-control" placeholder="Write a review..." required></textarea>
-                        <button type="submit" class="btn btn-custom mt-2">Submit Review</button>
-                    </form>
                 </div>
             </div>
         </div>
