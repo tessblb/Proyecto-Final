@@ -11,27 +11,27 @@ if (isset($_SESSION['id_usuario'])) {
     $admin_id = $_SESSION['id_usuario'];
     $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
 
-    if (!$con) {
-        die("Connection failed: " . mysqli_connect_error());
-    }
+if (!$con) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 
-    $queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
-    $resultadmin = mysqli_query($con, $queryadmin);
+$queryadmin = "SELECT administrator FROM usuarios WHERE id_usuario = $admin_id";
+$resultadmin = mysqli_query($con, $queryadmin);
 
-    if (!$resultadmin) {
-        die("Error: " . mysqli_error($con));
-    }
+if (!$resultadmin) {
+    die("Error: " . mysqli_error($con));
+}
 
-    $admin = mysqli_fetch_assoc($resultadmin);
+$admin = mysqli_fetch_assoc($resultadmin);
 
-    var_dump($admin);
+var_dump($admin);
 } else {
     $admin['administrator'] = 0;
 }
 
-$keyword = isset($_GET['nombre']) ? trim($_GET['nombre']) : "";
+$motCle = isset($_GET['nombre']) ? trim($_GET['nombre']) : "";
 
-if (empty($keyword)) {
+if (empty($motCle)) {
     die("The 'nombre' parameter is required to perform a search.");
 }
 
@@ -39,20 +39,20 @@ $sql = "SELECT id_producto, nombre, descripcion, precio, fotos FROM productos WH
 $stmt = mysqli_prepare($con, $sql);
 
 if (!$stmt) {
-    die("Error while preparing the query: " . mysqli_error($con));
+    die("Error while preparing the request. : " . mysqli_error($con));
 }
 
-$keywordLike = "%" . $keyword . "%";
-mysqli_stmt_bind_param($stmt, "ss", $keywordLike, $keywordLike);
+$motCleLike = "%" . $motCle . "%";
+mysqli_stmt_bind_param($stmt, "ss", $motCleLike, $motCleLike);
 
 if (!mysqli_stmt_execute($stmt)) {
-    die("Error while executing the query: " . mysqli_stmt_error($stmt));
+    die("Error while executing the request. : " . mysqli_stmt_error($stmt));
 }
 
 $result = mysqli_stmt_get_result($stmt);
-$results = [];
+$resultats = [];
 while ($row = mysqli_fetch_assoc($result)) {
-    $results[] = $row;
+    $resultats[] = $row;
 }
 mysqli_stmt_close($stmt);
 ?>
@@ -62,7 +62,7 @@ mysqli_stmt_close($stmt);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Résultats de la recherche</title>
+    <title>Search result</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -176,3 +176,4 @@ mysqli_stmt_close($stmt);
 </div>
 </body>
 </html>
+
