@@ -42,18 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cantidad = $_POST['cantidad'];
 
     if (empty($nombre) || empty($descripcion) || empty($categoria) || $precio < 0 || $cantidad < 0) {
-        echo "<div class='alert alert-danger'>Veuillez remplir tous les champs correctement.</div>";
+        echo "<div class='alert alert-danger'>Please fill in all fields correctly.</div>";
     } else {
         $update_stmt = $con->prepare("UPDATE productos SET nombre = ?, descripcion = ?, categoria = ?, precio = ?, cantidad = ? WHERE id_producto = ?");
         $update_stmt->bind_param("sssiii", $nombre, $descripcion, $categoria, $precio, $cantidad, $id);
 
         if ($update_stmt->execute()) {
-            echo "<div class='alert alert-success'>Product modification success!</div>";
+            echo "<br><br><<br>div class='alert alert-success'>Product modification success!</div>";
         } else {
-            echo "<div class='alert alert-danger'>Error during modification: " . $update_stmt->error . "</div>";
+            echo "<br><br><<br><div class='alert alert-danger'>Error during modification: " . $update_stmt->error . "</div>";
         }
         $update_stmt->close();
     }
+}
+if (isset($_GET['delete_comment'])) {
+    $comment_id = intval($_GET['delete_comment']);
+    $stmtDelete = $con->prepare("DELETE FROM comentarios WHERE id = ?");
+    $stmtDelete->bind_param("i", $comment_id);
+    if ($stmtDelete->execute()) {
+        echo "<br><br><<br><div class='alert alert-success'>Comment deleted successfully.</div>";
+    } else {
+        echo "<br><br><<br><div class='alert alert-danger'>Error deleting comment: " . $stmtDelete->error . "</div>";
+    }
+    $stmtDelete->close();
 }
 ?>
 
@@ -135,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </ul>
             </div>
         </nav>
-        <br><br><br><br>
+        <br>
     <div class="custom">
     <h2>Product Modification</h2>
     </div>
@@ -167,8 +178,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <?php else: ?>
         <p>Product not found.</p>
     <?php endif; ?>
+
     <hr>
+
+    <div class="mt-5">
+        <h3>Comments</h3>
+        <?php
+        $stmt = $con->prepare("
+            SELECT c.id, c.comment, c.stars, c.date_creation, u.nombre AS usuario_nombre 
+            FROM comentarios c
+            JOIN usuarios u ON c.id_usuario = u.id_usuario
+            WHERE c.id_producto = ? 
+            ORDER BY c.date_creation DESC
+        ");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            while ($comment = $result->fetch_assoc()) {
+                echo "<div class='review-section mb-4'>";
+                echo "<h5>" . htmlspecialchars($comment['usuario_nombre']) . "</h5>";
+                echo "<p>" . htmlspecialchars($comment['comment']) . "</p>";
+                echo "<p>Stars: " . htmlspecialchars($comment['stars']) . "</p>";
+                echo "<small>Posted on: " . htmlspecialchars($comment['date_creation']) . "</small><br>";
+                echo "<a href='modiproducto.php?id=$id&delete_comment=" . $comment['id'] . "' class='btn btn-danger btn-sm mt-2'>Delete</a>";
+                echo "</div><hr>";
+            }
+        } else {
+            echo "<p>Still no comments.</p>";
+        }
+        $stmt->close();
+        ?>
+    </div>
     <a href="inventario.php" class="btn btn-custom">Try from inventory</a><br><br>
 </div>
 </body>
 </html>
+
