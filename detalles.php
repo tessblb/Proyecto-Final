@@ -53,6 +53,26 @@ if ($result->num_rows === 0) {
 
 $product = $result->fetch_assoc();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'], $_POST['stars'])) {
+    $comment = trim($_POST['comment']);
+    $stars = intval($_POST['stars']);
+
+    if ($stars >= 1 && $stars <= 5 && !empty($comment)) {
+        $stmt = $con->prepare("INSERT INTO comentarios (id_producto, id_usuario, comment, stars) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("iisi", $id_producto, $_SESSION['id_usuario'], $comment, $stars);
+
+        if ($stmt->execute()) {
+            $message = "<p class='text-success'>Your review has been submitted successfully!</p>";
+        } else {
+            $message = "<p class='text-danger'>Error: " . htmlspecialchars($stmt->error) . "</p>";
+        }
+
+        $stmt->close();
+    } else {
+        $message = "<p class='text-danger'>Please provide a valid rating and comment.</p>";
+    }
+}
+
 mysqli_close($con);
 ?>
 
@@ -67,6 +87,10 @@ mysqli_close($con);
     <style>
         .navbar {
             background-color: #8f8787;
+            justify-content: space-between;
+            height: 60px;
+            display: flex;
+            align-items: center;
         }
         .btn-custom {
             background-color: #8B4513;
@@ -173,12 +197,67 @@ mysqli_close($con);
                 <?php else: ?>
                     <button class="btn btn-custom" disabled>Out of Stock</button>
                 <?php endif; ?>
-                <a href="favorite.php?add=<?php echo $product['id_producto']; ?>">
-                    <img src="favorite.png" alt="Favorites" style="width: 30px;">
-                </a>
+
+                <div class="review-section">
+                    <?php if (isset($message)) echo $message; ?>
+                    <h5>Leave a Review</h5>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="stars" class="form-label">Rating (1 to 5 stars)</label>
+                            <select name="stars" id="stars" class="form-select" required>
+                                <option value="" disabled selected>Select...</option>
+                                <option value="1">1 Star</option>
+                                <option value="2">2 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="5">5 Stars</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Your Comment</label>
+                            <textarea name="comment" id="comment" rows="4" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-custom">Submit</button>
+                    </form>
                 </div>
             </div>
         </div>
+
+        <div class="container mt-5">
+            <h3>Reviews</h3>
+            <?php
+            $con = mysqli_connect('localhost', 'root', '', 'proyectoFinal');
+            if (!$con) {
+                die("Connection failed: " . mysqli_connect_error());
+            }
+
+            $query = "SELECT u.nombre, c.comment, c.stars, c.date_creation 
+                      FROM comentarios c
+                      JOIN usuarios u ON c.id_usuario = u.id_usuario
+                      WHERE c.id_producto = ?
+                      ORDER BY c.date_creation DESC";
+            $stmt = $con->prepare($query);
+            $stmt->bind_param("i", $id_producto);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<div class='mb-3'>";
+                    echo "<h5>" . htmlspecialchars($row['nombre']) . " (" . $row['stars'] . " stars)</h5>";
+                    echo "<p>" . htmlspecialchars($row['comment']) . "</p>";
+                    echo "<small class='text-muted'>" . $row['date_creation'] . "</small>";
+                    echo "</div>";
+                }
+            } else {
+                echo "<p>No reviews for this product yet.</p>";
+            }
+
+            $stmt->close();
+            mysqli_close($con);
+            ?>
+        </div>
+        <br><br><br>
     </div>
 </body>
 </html>
